@@ -1,24 +1,21 @@
 import { useEffect, useState } from 'react'
 import PocketBase from 'pocketbase';
 
-const url = "http://localhost:8090/api/collections/todo/records"
+// const url = "http://localhost:8090/api/collections/todo/records"
 const client = new PocketBase('http://localhost:8090');
 
 const FormAddTodo = () => {
   const [text, setText] = useState("")
-  const onSubmit = () => {
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ todo: text })
-    })
-      .then(rs => rs.json())
-      .then(data => {
-        alert(`add id=${data.id} todo=${data.todo} completed!`)
-        setText("")
-      })
+  const onSubmit = async () => {
+
+    if (text) {
+      // await client.users.authViaEmail('user1@mail.com', 'user1@2022');
+      const record = await client.records.create('todo', { todo: text });
+      alert(`add id=${record.id} todo=${record.todo} completed!`)
+      setText("")
+    } else {
+      alert("please enter text")
+    }
   }
 
   return (
@@ -28,14 +25,12 @@ const FormAddTodo = () => {
     </div>
   )
 }
+
 const ListTodo = () => {
   const [list, setList] = useState([])
 
   const reloadData = async () => {
-    // fetch(url)
-    //   .then(rs => rs.json())
-    //   .then(data => setList(data.items))
-
+    //await client.users.authViaEmail('user1@mail.com', 'user1@2022');
     const list = await client.records.getFullList('todo', 200)
     setList(list)
   }
@@ -44,7 +39,6 @@ const ListTodo = () => {
     reloadData()
 
     client.realtime.subscribe('todo', function (e) {
-      // setList((p) => [...p, e.record]);
       reloadData()
     });
 
